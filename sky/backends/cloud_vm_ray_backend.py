@@ -2400,6 +2400,13 @@ class CloudVmRayBackend(backends.Backend['CloudVmRayResourceHandle']):
                 f'is {dir_size} MB. Try to keep workdir small or use '
                 '.gitignore to exclude large files, as large sizes will slow '
                 f'down rsync.{style.RESET_ALL}')
+        logger.info(f'{fore.CYAN}{style.BRIGHT}All files in workdir {workdir!r}'
+                    f' that will be synced to remote VM:{style.RESET_ALL}')
+        for _, dirs, files in os.walk(full_workdir):
+            for f in files:
+                logger.info(f'{fore.CYAN}{style.BRIGHT}*{style.RESET_ALL} {f}')
+            for d in dirs:
+                logger.info(f'{fore.CYAN}{style.BRIGHT}*{style.RESET_ALL} {d}/')
 
         log_path = os.path.join(self.log_dir, 'workdir_sync.log')
 
