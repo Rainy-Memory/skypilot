@@ -39,6 +39,8 @@ provider:
   # leakage.
   disable_launch_config_check: true
 
+  
+
 auth:
   ssh_user: gcpuser
   ssh_private_key: {{ssh_private_key}}
@@ -187,6 +189,7 @@ setup_commands:
     sudo pkill -9 apt-get;
     sudo dpkg --configure --force-overwrite -a;
     mkdir -p ~/.ssh; touch ~/.ssh/config;
+    cd ~;
     which conda > /dev/null 2>&1 || (wget -nc https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && bash Miniconda3-latest-Linux-x86_64.sh -b && eval "$(~/miniconda3/bin/conda shell.bash hook)" && conda init && conda config --set auto_activate_base true);
     source ~/.bashrc;
     pip3 --version > /dev/null 2>&1 || (curl -sSL https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python3 get-pip.py && echo "PATH=$HOME/.local/bin:$PATH" >> ~/.bashrc);

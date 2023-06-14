@@ -370,13 +370,23 @@ class SkyDockerCommandRunner(DockerCommandRunner):
                     'Unable to deserialize `image_env` to Python object. '
                     f'The `image_env` is:\n{image_env}')
                 raise e
+        
+            docker_file_str = textwrap.dedent(f"""\
+                FROM {specific_image}
+                RUN useradd -m {self.ssh_command_runner.ssh_user} \\
+                    && apt-get update && apt-get install -y rsync sudo \\
+                    && echo '{self.ssh_command_runner.ssh_user} ALL=(ALL) \\
+                    NOPASSWD: ALL' >> /etc/sudoers
+                USER {self.ssh_command_runner.ssh_user}""")
+            self.run(f'mkdir -p ~/docker_config; echo "{docker_file_str}" > ~/docker_config/Dockerfile', run_env='host')
+            self.run(f'{self.docker_cmd} build -t sky:adduser ~/docker_config', run_env='host')
 
             user_docker_run_options = self.docker_config.get(
                 'run_options', []) + self.docker_config.get(
                     f'{"head" if as_head else "worker"}_run_options', [])
             start_command = docker_start_cmds(
                 self.ssh_command_runner.ssh_user,
-                specific_image,
+                'sky:adduser',
                 cleaned_bind_mounts,
                 self.container_name,
                 self._configure_runtime(
@@ -387,8 +397,6 @@ class SkyDockerCommandRunner(DockerCommandRunner):
             )
             self.run(start_command, run_env='host')
             docker_run_executed = True
-
-        self.run('apt-get update; apt-get install -y rsync')
 
         # Explicitly copy in ray bootstrap files.
         for mount in bootstrap_mounts:
