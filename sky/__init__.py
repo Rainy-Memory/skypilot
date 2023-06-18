@@ -32,6 +32,7 @@ GCP = clouds.GCP
 Lambda = clouds.Lambda
 SCP = clouds.SCP
 Local = clouds.Local
+Kubernetes = clouds.Kubernetes
 OCI = clouds.OCI
 optimize = Optimizer.optimize
 
@@ -49,6 +50,7 @@ __all__ = [
     'OptimizeTarget',
     'backends',
     'benchmark',
+    'Kubernetes',
     'list_accelerators',
     '__root_dir__',
     'Storage',

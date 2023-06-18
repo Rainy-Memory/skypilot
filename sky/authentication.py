@@ -452,3 +452,33 @@ def setup_scp_authentication(config: Dict[str, Any]) -> Dict[str, Any]:
     file_mounts[public_key_path] = public_key_path
     config['file_mounts'] = file_mounts
     return config
+
+
+def setup_kubernetes_authentication(config: Dict[str, Any]) -> Dict[str, Any]:
+    get_or_generate_keys()
+
+    # Run kubectl command to add the public key to the cluster.
+    public_key_path = os.path.expanduser(PUBLIC_SSH_KEY_PATH)
+    key_label = clouds.Kubernetes.SKY_SSH_KEY_SECRET_NAME
+    cmd = f'kubectl create secret generic {key_label} ' \
+          f'--from-file=ssh-publickey={public_key_path}'
+    try:
+        subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+    except subprocess.CalledProcessError as e:
+        output = e.output.decode('utf-8')
+        if 'already exists' in output:
+            logger.warning(
+                f'Key {key_label} already exists in the cluster, using it...')
+            pass
+        else:
+            raise e
+
+    # Need to use ~ relative path because Ray uses the same
+    # path for finding the public key path on both local and head node.
+    config['auth']['ssh_public_key'] = PUBLIC_SSH_KEY_PATH
+
+    file_mounts = config['file_mounts']
+    file_mounts[PUBLIC_SSH_KEY_PATH] = PUBLIC_SSH_KEY_PATH
+    config['file_mounts'] = file_mounts
+
+    return config
