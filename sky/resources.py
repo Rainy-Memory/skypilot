@@ -2,6 +2,8 @@
 from typing import Dict, List, Optional, Union
 from typing_extensions import Literal
 
+import colorama
+
 from sky import clouds
 from sky import global_user_state
 from sky import sky_logging
@@ -473,6 +475,18 @@ class Resources:
                 continue
             # TODO: filter out the zones not available in the vpc_name
             filtered_regions.append(region)
+
+        # Friendlier UX. Otherwise users only get a generic
+        # ResourcesUnavailableError message without mentioning
+        # ssh_proxy_command.
+        if not filtered_regions:
+            yellow = colorama.Fore.YELLOW
+            reset = colorama.Style.RESET_ALL
+            logger.warning(
+                f'{yellow}Request {self} cannot be satisfied by any feasible '
+                'region. To fix, check that ssh_proxy_command\'s region keys '
+                f'include the regions to use.{reset}')
+
         return filtered_regions
 
     def _try_validate_instance_type(self) -> None:
@@ -841,6 +855,8 @@ class Resources:
             self.accelerators is None,
             self.accelerator_args is None,
             not self._use_spot_specified,
+            self.disk_size == _DEFAULT_DISK_SIZE_GB,
+            self._image_id is None,
         ])
 
     def copy(self, **override) -> 'Resources':
