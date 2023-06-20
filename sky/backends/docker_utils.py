@@ -182,8 +182,9 @@ def docker_host_setup(ip: str, cluster_config_file: str) -> str:
     # port to 10022 to avoid conflict with docker, in the same time
     # we restart the docker sshd service.
     docker_host_ssh_setup_commands = [
-        'sudo sed -i "s/#Port 22/Port 10022/" /etc/ssh/sshd_config',
-        'sudo systemctl restart sshd',
+        f'sudo docker exec {DEFAULT_DOCKER_CONTAINER_NAME} '
+        'bash --login -c -i \'sudo sed -i "s/#Port 22/Port 10022/" /etc/ssh/sshd_config\'',
+        # 'sudo systemctl restart sshd',
         # Restart ssh service in docker here since previous default
         # ssh port is occupied by the host.
         f'sudo docker exec {DEFAULT_DOCKER_CONTAINER_NAME} '

@@ -1281,12 +1281,15 @@ def ssh_credential_from_yaml(cluster_yaml: str,
     ssh_private_key = auth_section.get('ssh_private_key')
     ssh_control_name = config.get('cluster_name', '__default__')
     ssh_proxy_command = auth_section.get('ssh_proxy_command')
-    return {
+    credentials = {
         'ssh_user': ssh_user,
         'ssh_private_key': ssh_private_key,
         'ssh_control_name': ssh_control_name,
         'ssh_proxy_command': ssh_proxy_command,
     }
+    if docker_user:
+        credentials['port'] = 10022
+    return credentials
 
 
 def parallel_data_transfer_to_nodes(

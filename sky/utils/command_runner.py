@@ -161,9 +161,14 @@ class SSHCommandRunner:
         ssh_control_name: Optional[str] = None,
         ssh_proxy_command: Optional[str] = None,
         port_list: Optional[List[int]] = None,
+        port: Optional[int] = None,
     ) -> List['SSHCommandRunner']:
         """Helper function for creating runners with the same ssh credentials"""
-        if not port_list:
+        # if port is specified, use it for all ips and ignore port_list
+        # this is for docker credentials, which contains the port section
+        if port:
+            port_list = [port] * len(ip_list)
+        elif not port_list:
             port_list = [22] * len(ip_list)
         return [
             SSHCommandRunner(ip, ssh_user, ssh_private_key, ssh_control_name,
