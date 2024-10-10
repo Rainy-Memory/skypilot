@@ -27,7 +27,9 @@ class SkyServeLoadBalancer:
     policy.
     """
 
-    def __init__(self, controller_url: str, load_balancer_port: int, load_balancing_policy: lb_policies.LoadBalancingPolicy) -> None:
+    def __init__(
+            self, controller_url: str, load_balancer_port: int,
+            load_balancing_policy: lb_policies.LoadBalancingPolicy) -> None:
         """Initialize the load balancer.
 
         Args:
@@ -37,7 +39,8 @@ class SkyServeLoadBalancer:
         self._app = fastapi.FastAPI()
         self._controller_url: str = controller_url
         self._load_balancer_port: int = load_balancer_port
-        self._load_balancing_policy: load_balancing_policy
+        self._load_balancing_policy: lb_policies.LoadBalancingPolicy = (
+            load_balancing_policy)
         self._request_aggregator: serve_utils.RequestsAggregator = (
             serve_utils.RequestTimestamp())
         # TODO(tian): httpx.Client has a resource limit of 100 max connections
@@ -222,15 +225,14 @@ class SkyServeLoadBalancer:
         uvicorn.run(self._app, host='0.0.0.0', port=self._load_balancer_port)
 
 
-def run_load_balancer(controller_addr: str, load_balancer_port: int, policy_name: str):
-    if policy_name == 'round_robin':
-        policy = lb_policies.RoundRobinPolicy()
-    elif policy_name == 'geo_data':
+def run_load_balancer(controller_addr: str, load_balancer_port: int,
+                      policy_name: str):
+    # By default, the round robin policy is used.
+    policy: lb_policies.LoadBalancingPolicy = lb_policies.RoundRobinPolicy()
+    if policy_name == 'geo_data':
         #TODO(acuadron): Right now the locations of the VMs have to be inputed manually during the GeoDataPolicy
         # instantiation, change this behaviour. We should, store the location of the replicas during their creation.
-        policy = lb_policies.GeoDataPolicy({})
-    else:
-        raise ValueError(f"Unknown load balancing policy: {policy_name}")
+        policy: lb_policies.LoadBalancingPolicy = lb_policies.GeoDataPolicy({})
 
     load_balancer = SkyServeLoadBalancer(controller_url=controller_addr,
                                          load_balancer_port=load_balancer_port,
@@ -250,9 +252,11 @@ if __name__ == '__main__':
                         required=True,
                         default=8890,
                         help='The port where the load balancer listens to.')
-    parser.add_argument('--load-balancing-policy',
-                        choices=['round_robin', 'geo_data'],
-                        default='round_robin', #TODO(acuadron): Change it to geo_data when ready
-                        help='The load balancing policy to use.')
+    parser.add_argument(
+        '--load-balancing-policy',
+        choices=['round_robin', 'geo_data'],
+        default='round_robin',  #TODO(acuadron): Change it to geo_data when ready
+        help='The load balancing policy to use.')
     args = parser.parse_args()
-    run_load_balancer(args.controller_addr, args.load_balancer_port, args.load_balancing_policy)
+    run_load_balancer(args.controller_addr, args.load_balancer_port,
+                      args.load_balancing_policy)
