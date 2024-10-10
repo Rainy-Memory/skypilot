@@ -112,7 +112,7 @@ class GeoDataPolicy(LoadBalancingPolicy):
 
         return nearest_replica
 
-    async def _get_user_location(
+    def _get_user_location(
             self, request: 'fastapi.Request') -> Optional[Tuple[float, float]]:
         # Extract the user's IP address
         ip_address = request.client.host
@@ -121,10 +121,10 @@ class GeoDataPolicy(LoadBalancingPolicy):
             return None
 
         # Perform GeoIP lookup using httpx, limited to 150 requests per minute.
-        # TODO(acuadron): Use IP caching to reduce the number of requests.
+        # TODO(acuadron): Use IP caching to reduce the number of requests. Async?
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
+            with httpx.Client() as client:
+                response = client.get(
                     f'http://ip-api.com/json/{ip_address}', timeout=2)
                 if response.status_code == 200:
                     data = response.json()
