@@ -230,9 +230,11 @@ def run_load_balancer(controller_addr: str, load_balancer_port: int,
     # By default, the round robin policy is used.
     policy: lb_policies.LoadBalancingPolicy = lb_policies.RoundRobinPolicy()
     if policy_name == 'geo_data':
-        #TODO(acuadron): Right now the locations of the VMs have to be inputed manually during the GeoDataPolicy
-        # instantiation, change this behaviour. We should, store the location of the replicas during their creation.
-        policy: lb_policies.LoadBalancingPolicy = lb_policies.GeoDataPolicy({})
+        #TODO(acuadron): Right now the locations of the VMs have
+        # to be inputed manually during the GeoDataPolicy
+        # instantiation, change this behaviour. We should, store
+        # the location of the replicas during their creation.
+        policy = lb_policies.GeoDataPolicy({})
 
     load_balancer = SkyServeLoadBalancer(controller_url=controller_addr,
                                          load_balancer_port=load_balancer_port,
@@ -252,11 +254,11 @@ if __name__ == '__main__':
                         required=True,
                         default=8890,
                         help='The port where the load balancer listens to.')
-    parser.add_argument(
-        '--load-balancing-policy',
-        choices=['round_robin', 'geo_data'],
-        default='round_robin',  #TODO(acuadron): Change it to geo_data when ready
-        help='The load balancing policy to use.')
+    #TODO(acuadron): Change default to geo_data when ready
+    parser.add_argument('--load-balancing-policy',
+                        choices=['round_robin', 'geo_data'],
+                        default='round_robin',
+                        help='The load balancing policy to use.')
     args = parser.parse_args()
     run_load_balancer(args.controller_addr, args.load_balancer_port,
                       args.load_balancing_policy)
